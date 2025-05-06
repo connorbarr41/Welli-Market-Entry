@@ -131,48 +131,48 @@ col1, col2 = st.sidebar.columns(2)
 
 with col1:
     monthly_patients = st.number_input('Monthly Patients', 
-                                     value=st.session_state.current_inputs['monthly_patients'],
+                                     value=float(st.session_state.current_inputs['monthly_patients']),
                                      min_value=0.0)
     procedure_cost = st.number_input('Procedure Cost',
-                                   value=st.session_state.current_inputs['procedure_cost'],
+                                   value=float(st.session_state.current_inputs['procedure_cost']),
                                    min_value=0.0)
     financing_rate = st.number_input('Financing Rate (%)',
-                                   value=st.session_state.current_inputs['financing_rate'],
+                                   value=float(st.session_state.current_inputs['financing_rate']),
                                    min_value=0.0, max_value=100.0)
     interest_rate = st.number_input('Interest Rate (%)',
-                                  value=st.session_state.current_inputs['interest_rate'],
+                                  value=float(st.session_state.current_inputs['interest_rate']),
                                   min_value=0.0, max_value=100.0)
     medical_discount = st.number_input('Medical Discount (%)',
-                                     value=st.session_state.current_inputs['medical_discount'],
+                                     value=float(st.session_state.current_inputs['medical_discount']),
                                      min_value=0.0, max_value=100.0)
     insurance_commission = st.number_input('Insurance Commission (%)',
-                                        value=st.session_state.current_inputs['insurance_commission'],
+                                        value=float(st.session_state.current_inputs['insurance_commission']),
                                         min_value=0.0, max_value=100.0)
     funding_cost = st.number_input('Funding Cost (%)',
-                                 value=st.session_state.current_inputs['funding_cost'],
+                                 value=float(st.session_state.current_inputs['funding_cost']),
                                  min_value=0.0, max_value=100.0)
 
 with col2:
     operating_cost = st.number_input('Operating Cost per Patient',
-                                   value=st.session_state.current_inputs['operating_cost'],
+                                   value=float(st.session_state.current_inputs['operating_cost']),
                                    min_value=0.0)
     bad_debt = st.number_input('Bad Debt (%)',
-                             value=st.session_state.current_inputs['bad_debt'],
+                             value=float(st.session_state.current_inputs['bad_debt']),
                              min_value=0.0, max_value=100.0)
     compliance_cost = st.number_input('Annual Compliance Cost',
-                                    value=st.session_state.current_inputs['compliance_cost'],
+                                    value=float(st.session_state.current_inputs['compliance_cost']),
                                     min_value=0.0)
     corporate_tax = st.number_input('Corporate Tax Rate (%)',
-                                  value=st.session_state.current_inputs['corporate_tax'],
+                                  value=float(st.session_state.current_inputs['corporate_tax']),
                                   min_value=0.0, max_value=100.0)
     exchange_rate = st.number_input('Exchange Rate',
                                   value=current_rate,
                                   min_value=0.0)
     inflation_rate = st.number_input('Inflation Rate (%)',
-                                   value=st.session_state.current_inputs['inflation_rate'],
+                                   value=float(st.session_state.current_inputs['inflation_rate']),
                                    min_value=0.0, max_value=100.0)
     patient_growth = st.number_input('Patient Growth Rate (%)',
-                                   value=st.session_state.current_inputs['patient_growth'],
+                                   value=float(st.session_state.current_inputs['patient_growth']),
                                    min_value=0.0, max_value=100.0)
 
 # Update session state
