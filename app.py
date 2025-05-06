@@ -90,20 +90,20 @@ def create_waterfall_chart(results):
 if 'current_inputs' not in st.session_state:
     st.session_state.current_inputs = {
         'country': 'Peru',
-        'monthly_patients': 100,
-        'procedure_cost': 5000,
-        'financing_rate': 70,
-        'interest_rate': 15,
-        'medical_discount': 10,
-        'insurance_commission': 5,
-        'funding_cost': 8,
-        'operating_cost': 200,
-        'bad_debt': 5,
-        'compliance_cost': 50000,
-        'corporate_tax': 30,
+        'monthly_patients': 100.0,
+        'procedure_cost': 5000.0,
+        'financing_rate': 70.0,
+        'interest_rate': 15.0,
+        'medical_discount': 10.0,
+        'insurance_commission': 5.0,
+        'funding_cost': 8.0,
+        'operating_cost': 200.0,
+        'bad_debt': 5.0,
+        'compliance_cost': 50000.0,
+        'corporate_tax': 30.0,
         'exchange_rate': 3.75,
-        'inflation_rate': 4,
-        'patient_growth': 5
+        'inflation_rate': 4.0,
+        'patient_growth': 5.0
     }
 
 # App title and description
