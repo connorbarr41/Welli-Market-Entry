@@ -318,22 +318,48 @@ simulations   = 1000
 if 'monte_df' not in st.session_state or redo_monte:
     np.random.seed(None)
     results = []
-    for _ in range(simulations):
-        sim = current_inputs.copy()
-        # wider cost swings for downside risk
-        sim['procedure_cost']  *= np.random.uniform(0.8, 1.2)
-        sim['operating_cost']  *= np.random.uniform(0.85, 1.15)
-        # patient volume ±15% volatility
-        sim['monthly_patients'] = max(
-            0,
-            np.random.normal(
-                current_inputs['monthly_patients'],
-                current_inputs['monthly_patients'] * 0.15
-            )
+        sim = base.copy()
+
+    # revenue drivers
+    sim['monthly_patients'] = max(
+        0,
+        np.random.normal(
+            base['monthly_patients'],
+            base['monthly_patients'] * 0.2           # ±20% instead of 15%
         )
-        sim['interest_rate'] = np.random.uniform(10.0, 20.0)
-        sim['bad_debt']      = np.random.uniform(2.0, 10.0)
-        results.append(calculate_metrics(sim)['Net Profit'])
+    )
+    sim['procedure_cost'] *= np.random.uniform(0.7, 1.3)  # ±30%
+
+    # cost drivers
+    sim['operating_cost']    *= np.random.uniform(0.7, 1.3)  # ±30%
+    sim['compliance_cost']   *= np.random.uniform(0.8, 1.2)  # ±20%
+    sim['funding_cost']      *= np.random.uniform(0.7, 1.3)  # ±30%
+
+    # fees & discounts
+    sim['medical_discount']    *= np.random.uniform(0.7, 1.3)  # ±30%
+    sim['insurance_commission']*= np.random.uniform(0.7, 1.3)  # ±30%
+
+    # macro & tax variables
+    sim['interest_rate'] = np.random.uniform(5.0, 25.0)        # widen from 10–20
+    sim['bad_debt']      = np.random.uniform(1.0, 15.0)        # widen from 2–10
+    sim['exchange_rate'] *= np.random.uniform(0.9, 1.1)        # ±10%
+    sim['inflation_rate'] = np.random.uniform(
+        base['inflation_rate'] * 0.8,
+        base['inflation_rate'] * 1.2
+    )  
+    sim['corporate_tax'] = np.random.uniform(
+        base['corporate_tax'] * 0.8,
+        base['corporate_tax'] * 1.2
+    )
+
+    # growth assumption
+    sim['patient_growth'] = np.random.uniform(
+        base['patient_growth'] * 0.7,
+        base['patient_growth'] * 1.3
+    )
+
+    results.append(calculate_metrics(sim)['Net Profit'])
+
     st.session_state.monte_df = pd.DataFrame(results, columns=["Net Profit"])
 
 monte_df = st.session_state.monte_df
