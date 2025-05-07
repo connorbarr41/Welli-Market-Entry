@@ -315,13 +315,12 @@ current_inputs['financing_rate'] = 100.0
 simulations   = 1000
 
 # run on first load or when button is clicked
-# ── run on first load or when button is clicked
 if 'monte_df' not in st.session_state or redo_monte:
     np.random.seed(None)
     results = []
 
     for _ in range(simulations):
-        sim = current_inputs.copy()       # ← defined above as session_state
+        sim = current_inputs.copy()
 
         # revenue drivers
         sim['monthly_patients'] = max(
@@ -334,17 +333,17 @@ if 'monte_df' not in st.session_state or redo_monte:
         sim['procedure_cost'] *= np.random.uniform(0.7, 1.3)
 
         # cost drivers
-        sim['operating_cost']    *= np.random.uniform(0.7, 1.3)
-        sim['compliance_cost']   *= np.random.uniform(0.8, 1.2)
-        sim['funding_cost']      *= np.random.uniform(0.7, 1.3)
+        sim['operating_cost']  *= np.random.uniform(0.7, 1.3)
+        sim['compliance_cost'] *= np.random.uniform(0.8, 1.2)
+        sim['funding_cost']    *= np.random.uniform(0.7, 1.3)
 
         # fees & discounts
         sim['medical_discount']     *= np.random.uniform(0.7, 1.3)
         sim['insurance_commission'] *= np.random.uniform(0.7, 1.3)
 
         # macro & tax variables
-        sim['interest_rate'] = np.random.uniform(5.0, 90.0)
-        sim['bad_debt']      = np.random.uniform(1.0, 25.0)
+        sim['interest_rate']  = np.random.uniform(5.0, 90.0)
+        sim['bad_debt']       = np.random.uniform(1.0, 25.0)
         sim['exchange_rate'] *= np.random.uniform(0.9, 1.1)
         sim['inflation_rate'] = np.random.uniform(
             current_inputs['inflation_rate'] * 0.8,
@@ -361,11 +360,10 @@ if 'monte_df' not in st.session_state or redo_monte:
             current_inputs['patient_growth'] * 1.5
         )
 
-        # collect the result
         results.append(calculate_metrics(sim)['Net Profit'])
 
-    # only now store the DataFrame
     st.session_state.monte_df = pd.DataFrame(results, columns=["Net Profit"])
+
 
 # pull in the DataFrame
 monte_df = st.session_state.monte_df
