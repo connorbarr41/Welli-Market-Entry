@@ -311,7 +311,9 @@ st.header("Monte Carlo Simulation")
 
 st.write("Simulating 1,000 scenarios with randomized Interest Rate, Bad Debt, and Revenue Multiplier.")
 
-simulations = 1000.0
+current_inputs = st.session_state.current_inputs
+
+simulations = 1000
 np.random.seed(42)
 
 results_monte = []
@@ -330,7 +332,7 @@ monte_df = pd.DataFrame(results_monte, columns=["Net Profit"])
 # Show histogram
 fig_monte = go.Figure(data=[go.Histogram(x=monte_df["Net Profit"], nbinsx=50)])
 fig_monte.update_layout(title="Monte Carlo Simulation: Net Profit Distribution",
-                        xaxis_ti="Net Profit",
+                        xaxis_title="Net Profit",
                         yaxis_title="Frequency",
                         height=500)
 st.plotly_chart(fig_monte, use_container_width=True)
