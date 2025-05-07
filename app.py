@@ -308,13 +308,14 @@ st.metric("Adjusted Total Costs", f"${sensitivity_results['Total Costs']:,.2f}")
 # Monte Carlo Simulation
 # ---------------------------------------
 st.header("Monte Carlo Simulation")
+redo_monte = st.button("Redo Monte Carlo")
 st.write("Simulating 1,000 scenarios with randomized drivers—click the button to rerun.")
 
 current_inputs = st.session_state.current_inputs
 simulations   = 1000
 
 # ── run on first load and whenever the button is pressed
-if 'monte_df' not in st.session_state or st.button("Redo Monte Carlo"):
+if 'monte_df' not in st.session_state or redo_monte:
     np.random.seed(42)
     results = []
     for _ in range(simulations):
