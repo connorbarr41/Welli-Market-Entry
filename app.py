@@ -93,8 +93,6 @@ if 'current_inputs' not in st.session_state:
         'monthly_patients': 93100.0,
         'procedure_cost': 1200.0,
         'financing_rate': 100.0,
-        # enforce 100% financing everywhere
-    st.session_state.current_inputs['financing_rate'] = 100.0
         'interest_rate': 28.0,
         'medical_discount': 10.0,
         'insurance_commission': 5.0,
@@ -107,6 +105,8 @@ if 'current_inputs' not in st.session_state:
         'inflation_rate': 4.0,
         'patient_growth': 5.0
     }
+# enforce 100% financing everywhere
+    st.session_state.current_inputs['financing_rate'] = 100.0
 
 # App title and description
 st.title('LatAm Financial Model')
