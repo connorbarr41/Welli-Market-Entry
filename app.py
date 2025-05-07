@@ -308,36 +308,45 @@ st.metric("Adjusted Total Costs", f"${sensitivity_results['Total Costs']:,.2f}")
 # Monte Carlo Simulation
 # ---------------------------------------
 st.header("Monte Carlo Simulation")
-
-st.write("Simulating 1,000 scenarios with randomized Interest Rate, Bad Debt, and Revenue Multiplier.")
+st.write("Simulating 1,000 scenarios with randomized drivers—click the button to rerun.")
 
 current_inputs = st.session_state.current_inputs
+simulations   = 1000
 
-simulations = 1000
-np.random.seed(42)
+# ── run on first load and whenever the button is pressed
+if 'monte_df' not in st.session_state or st.button("Redo Monte Carlo"):
+    np.random.seed(42)
+    results = []
+    for _ in range(simulations):
+        sim = current_inputs.copy()
+        # wider cost swings for downside risk
+        sim['procedure_cost']  *= np.random.uniform(0.8, 1.2)
+        sim['operating_cost']  *= np.random.uniform(0.85, 1.15)
+        # patient volume ±15% volatility
+        sim['monthly_patients'] = max(
+            0,
+            np.random.normal(
+                current_inputs['monthly_patients'],
+                current_inputs['monthly_patients'] * 0.15
+            )
+        )
+        sim['interest_rate'] = np.random.uniform(10.0, 20.0)
+        sim['bad_debt']      = np.random.uniform(2.0, 10.0)
+        results.append(calculate_metrics(sim)['Net Profit'])
+    st.session_state.monte_df = pd.DataFrame(results, columns=["Net Profit"])
 
-results_monte = []
+monte_df = st.session_state.monte_df
 
-for _ in range(simulations):
-    sim_inputs = current_inputs.copy()
-    sim_inputs['interest_rate'] = np.random.uniform(10.0, 20.0)
-    sim_inputs['bad_debt'] = np.random.uniform(2.0, 10.0)
-    sim_inputs['procedure_cost'] *= np.random.uniform(0.9, 1.1)
-    sim_result = calculate_metrics(sim_inputs)
-    results_monte.append(sim_result['Net Profit'])
+# ── chart & stats
+fig = go.Figure(data=[go.Histogram(x=monte_df["Net Profit"], nbinsx=50)])
+fig.update_layout(
+    title="Monte Carlo Simulation: Net Profit Distribution",
+    xaxis_title="Net Profit",
+    yaxis_title="Frequency",
+    height=500
+)
+st.plotly_chart(fig, use_container_width=True)
 
-# Convert to DataFrame
-monte_df = pd.DataFrame(results_monte, columns=["Net Profit"])
-
-# Show histogram
-fig_monte = go.Figure(data=[go.Histogram(x=monte_df["Net Profit"], nbinsx=50)])
-fig_monte.update_layout(title="Monte Carlo Simulation: Net Profit Distribution",
-                        xaxis_title="Net Profit",
-                        yaxis_title="Frequency",
-                        height=500)
-st.plotly_chart(fig_monte, use_container_width=True)
-
-# Key stats
 st.subheader("Summary Statistics")
 st.write(f"Mean Net Profit: ${monte_df['Net Profit'].mean():,.2f}")
 st.write(f"Probability of Loss: {(monte_df['Net Profit'] < 0).mean()*100:.1f}%")
