@@ -90,10 +90,10 @@ def create_waterfall_chart(results):
 if 'current_inputs' not in st.session_state:
     st.session_state.current_inputs = {
         'country': 'Peru',
-        'monthly_patients': 100.0,
+        'monthly_patients': 93100.0,
         'procedure_cost': 1200.0,
-        'financing_rate': 70.0,
-        'interest_rate': 15.0,
+        'financing_rate': 100.0,
+        'interest_rate': 28.0,
         'medical_discount': 10.0,
         'insurance_commission': 5.0,
         'funding_cost': 8.0,
@@ -136,9 +136,6 @@ with col1:
     procedure_cost = st.number_input('Procedure Cost',
                                    value=float(st.session_state.current_inputs['procedure_cost']),
                                    min_value=0.0)
-    financing_rate = st.number_input('Financing Rate (%)',
-                                   value=float(st.session_state.current_inputs['financing_rate']),
-                                   min_value=0.0, max_value=100.0)
     interest_rate = st.number_input('Interest Rate (%)',
                                   value=float(st.session_state.current_inputs['interest_rate']),
                                   min_value=0.0, max_value=100.0)
@@ -347,10 +344,6 @@ if 'monte_df' not in st.session_state or redo_monte:
         sim['inflation_rate'] = np.random.uniform(
             current_inputs['inflation_rate'] * 0.8,
             current_inputs['inflation_rate'] * 1.2
-        )
-        sim['corporate_tax'] = np.random.uniform(
-            current_inputs['corporate_tax'] * 0.8,
-            current_inputs['corporate_tax'] * 1.2
         )
 
         # growth assumption
