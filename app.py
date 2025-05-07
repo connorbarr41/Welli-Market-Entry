@@ -311,15 +311,15 @@ st.header("Monte Carlo Simulation")
 
 st.write("Simulating 1,000 scenarios with randomized Interest Rate, Bad Debt, and Revenue Multiplier.")
 
-simulations = 1000
+simulations = 1000.0
 np.random.seed(42)
 
 results_monte = []
 
 for _ in range(simulations):
     sim_inputs = current_inputs.copy()
-    sim_inputs['interest_rate'] = np.random.uniform(10, 20)
-    sim_inputs['bad_debt'] = np.random.uniform(2, 10)
+    sim_inputs['interest_rate'] = np.random.uniform(10.0, 20.0)
+    sim_inputs['bad_debt'] = np.random.uniform(2.0, 10.0)
     sim_inputs['procedure_cost'] *= np.random.uniform(0.9, 1.1)
     sim_result = calculate_metrics(sim_inputs)
     results_monte.append(sim_result['Net Profit'])
