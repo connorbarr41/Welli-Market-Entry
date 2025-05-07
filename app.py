@@ -90,7 +90,7 @@ def create_waterfall_chart(results):
 if 'current_inputs' not in st.session_state:
     st.session_state.current_inputs = {
         'country': 'Peru',
-        'monthly_patients': 93100.0,
+        'monthly_patients': 931.0,
         'procedure_cost': 1200.0,
         'financing_rate': 100.0,
         'interest_rate': 28.0,
