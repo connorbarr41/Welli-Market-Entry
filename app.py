@@ -93,6 +93,8 @@ if 'current_inputs' not in st.session_state:
         'monthly_patients': 93100.0,
         'procedure_cost': 1200.0,
         'financing_rate': 100.0,
+        # enforce 100% financing everywhere
+    st.session_state.current_inputs['financing_rate'] = 100.0
         'interest_rate': 28.0,
         'medical_discount': 10.0,
         'insurance_commission': 5.0,
@@ -309,6 +311,7 @@ redo_monte = st.button("Redo Monte Carlo")
 st.write("Simulating 1,000 scenarios with widened variability—click the button to rerun.")
 
 current_inputs = st.session_state.current_inputs
+current_inputs['financing_rate'] = 100.0
 simulations   = 1000
 
 # run on first load or when button is clicked
