@@ -316,7 +316,7 @@ simulations   = 1000
 
 # ── run on first load and whenever the button is pressed
 if 'monte_df' not in st.session_state or redo_monte:
-    np.random.seed(42)
+    np.random.seed(None)
     results = []
     for _ in range(simulations):
         sim = current_inputs.copy()
