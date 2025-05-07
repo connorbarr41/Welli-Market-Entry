@@ -309,59 +309,64 @@ st.metric("Adjusted Total Costs", f"${sensitivity_results['Total Costs']:,.2f}")
 # ---------------------------------------
 st.header("Monte Carlo Simulation")
 redo_monte = st.button("Redo Monte Carlo")
-st.write("Simulating 1,000 scenarios with randomized drivers—click the button to rerun.")
+st.write("Simulating 1,000 scenarios with widened variability—click the button to rerun.")
 
 current_inputs = st.session_state.current_inputs
 simulations   = 1000
 
-# ── run on first load and whenever the button is pressed
+# run on first load or when button is clicked
 if 'monte_df' not in st.session_state or redo_monte:
     np.random.seed(None)
     results = []
     for _ in range(simulations):
-        sim = current_inputs.copy()    
+        sim = current_inputs.copy()
 
         # revenue drivers
         sim['monthly_patients'] = max(
             0,
             np.random.normal(
-                base['monthly_patients'],
-                base['monthly_patients'] * 0.2           # ±20% instead of 15%
+                current_inputs['monthly_patients'],
+                current_inputs['monthly_patients'] * 0.2
             )
         )
-        sim['procedure_cost'] *= np.random.uniform(0.7, 1.3)  # ±30%
-    
-    # cost drivers
-        sim['operating_cost']    *= np.random.uniform(0.7, 1.3)  # ±30%
-        sim['compliance_cost']   *= np.random.uniform(0.8, 1.2)  # ±20%
-        sim['funding_cost']      *= np.random.uniform(0.7, 1.3)  # ±30%
+        sim['procedure_cost'] *= np.random.uniform(0.7, 1.3)
 
-    # fees & discounts
-        sim['medical_discount']    *= np.random.uniform(0.7, 1.3)  # ±30%
-        sim['insurance_commission']*= np.random.uniform(0.7, 1.3)  # ±30%
+        # cost drivers
+        sim['operating_cost']    *= np.random.uniform(0.7, 1.3)
+        sim['compliance_cost']   *= np.random.uniform(0.8, 1.2)
+        sim['funding_cost']      *= np.random.uniform(0.7, 1.3)
 
-    # macro & tax variables
-        sim['interest_rate'] = np.random.uniform(5.0, 90.0)        # widen from 10–20
-        sim['bad_debt']      = np.random.uniform(1.0, 25.0)        # widen from 2–10
-        sim['exchange_rate'] *= np.random.uniform(0.9, 1.1)        # ±10%
+        # fees & discounts
+        sim['medical_discount']     *= np.random.uniform(0.7, 1.3)
+        sim['insurance_commission'] *= np.random.uniform(0.7, 1.3)
+
+        # macro & tax variables
+        sim['interest_rate'] = np.random.uniform(5.0, 90.0)
+        sim['bad_debt']      = np.random.uniform(1.0, 25.0)
+        sim['exchange_rate'] *= np.random.uniform(0.9, 1.1)
         sim['inflation_rate'] = np.random.uniform(
-            base['inflation_rate'] * 0.8,
-            base['inflation_rate'] * 1.2
-        )  
+            current_inputs['inflation_rate'] * 0.8,
+            current_inputs['inflation_rate'] * 1.2
+        )
+        sim['corporate_tax'] = np.random.uniform(
+            current_inputs['corporate_tax'] * 0.8,
+            current_inputs['corporate_tax'] * 1.2
+        )
 
-    # growth assumption
+        # growth assumption
         sim['patient_growth'] = np.random.uniform(
-            base['patient_growth'] * 0.1,
-            base['patient_growth'] * 1.5
+            current_inputs['patient_growth'] * 0.1,
+            current_inputs['patient_growth'] * 1.5
         )
 
         results.append(calculate_metrics(sim)['Net Profit'])
 
     st.session_state.monte_df = pd.DataFrame(results, columns=["Net Profit"])
 
+# pull in the DataFrame
 monte_df = st.session_state.monte_df
 
-# ── chart & stats
+# chart & stats
 fig = go.Figure(data=[go.Histogram(x=monte_df["Net Profit"], nbinsx=50)])
 fig.update_layout(
     title="Monte Carlo Simulation: Net Profit Distribution",
