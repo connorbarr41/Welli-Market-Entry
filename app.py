@@ -274,3 +274,68 @@ fig.update_layout(
 )
 
 st.plotly_chart(fig, use_container_width=True)
+# ---------------------------------------
+# Sensitivity Analysis
+# ---------------------------------------
+st.header("Sensitivity Analysis")
+
+st.subheader("Adjust Variables")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    sens_interest = st.slider("Interest Rate (%)", 5.0, 25.0, float(current_inputs['interest_rate']), 0.5)
+
+with col2:
+    sens_bad_debt = st.slider("Bad Debt (%)", 0.0, 20.0, float(current_inputs['bad_debt']), 0.5)
+
+with col3:
+    sens_revenue_mult = st.slider("Revenue Multiplier", 0.8, 1.2, 1.0, 0.01)
+
+# Apply sensitivity inputs
+sensitivity_inputs = current_inputs.copy()
+sensitivity_inputs['interest_rate'] = sens_interest
+sensitivity_inputs['bad_debt'] = sens_bad_debt
+for key in ['procedure_cost']:
+    sensitivity_inputs[key] *= sens_revenue_mult
+
+sensitivity_results = calculate_metrics(sensitivity_inputs)
+
+st.metric("Adjusted Net Profit", f"${sensitivity_results['Net Profit']:,.2f}")
+st.metric("Adjusted Total Revenue", f"${sensitivity_results['Total Revenue']:,.2f}")
+st.metric("Adjusted Total Costs", f"${sensitivity_results['Total Costs']:,.2f}")
+# ---------------------------------------
+# Monte Carlo Simulation
+# ---------------------------------------
+st.header("Monte Carlo Simulation")
+
+st.write("Simulating 1,000 scenarios with randomized Interest Rate, Bad Debt, and Revenue Multiplier.")
+
+simulations = 1000
+np.random.seed(42)
+
+results_monte = []
+
+for _ in range(simulations):
+    sim_inputs = current_inputs.copy()
+    sim_inputs['interest_rate'] = np.random.uniform(10, 20)
+    sim_inputs['bad_debt'] = np.random.uniform(2, 10)
+    sim_inputs['procedure_cost'] *= np.random.uniform(0.9, 1.1)
+    sim_result = calculate_metrics(sim_inputs)
+    results_monte.append(sim_result['Net Profit'])
+
+# Convert to DataFrame
+monte_df = pd.DataFrame(results_monte, columns=["Net Profit"])
+
+# Show histogram
+fig_monte = go.Figure(data=[go.Histogram(x=monte_df["Net Profit"], nbinsx=50)])
+fig_monte.update_layout(title="Monte Carlo Simulation: Net Profit Distribution",
+                        xaxis_ti="Net Profit",
+                        yaxis_title="Frequency",
+                        height=500)
+st.plotly_chart(fig_monte, use_container_width=True)
+
+# Key stats
+st.subheader("Summary Statistics")
+st.write(f"Mean Net Profit: ${monte_df['Net Profit'].mean():,.2f}")
+st.write(f"Probability of Loss: {(monte_df['Net Profit'] < 0).mean()*100:.1f}%")
