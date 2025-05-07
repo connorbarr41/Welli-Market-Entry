@@ -179,7 +179,7 @@ current_inputs = {
     'country': country,
     'monthly_patients': monthly_patients,
     'procedure_cost': procedure_cost,
-    'financing_rate': financing_rate,
+    'financing_rate': 100.0,
     'interest_rate': interest_rate,
     'medical_discount': medical_discount,
     'insurance_commission': insurance_commission,
