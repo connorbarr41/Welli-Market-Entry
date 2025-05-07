@@ -315,11 +315,13 @@ current_inputs['financing_rate'] = 100.0
 simulations   = 1000
 
 # run on first load or when button is clicked
+# ── run on first load or when button is clicked
 if 'monte_df' not in st.session_state or redo_monte:
     np.random.seed(None)
     results = []
+
     for _ in range(simulations):
-        sim = current_inputs.copy()
+        sim = current_inputs.copy()       # ← defined above as session_state
 
         # revenue drivers
         sim['monthly_patients'] = max(
@@ -348,6 +350,10 @@ if 'monte_df' not in st.session_state or redo_monte:
             current_inputs['inflation_rate'] * 0.8,
             current_inputs['inflation_rate'] * 1.2
         )
+        sim['corporate_tax'] = np.random.uniform(
+            current_inputs['corporate_tax'] * 0.8,
+            current_inputs['corporate_tax'] * 1.2
+        )
 
         # growth assumption
         sim['patient_growth'] = np.random.uniform(
@@ -355,8 +361,10 @@ if 'monte_df' not in st.session_state or redo_monte:
             current_inputs['patient_growth'] * 1.5
         )
 
+        # collect the result
         results.append(calculate_metrics(sim)['Net Profit'])
 
+    # only now store the DataFrame
     st.session_state.monte_df = pd.DataFrame(results, columns=["Net Profit"])
 
 # pull in the DataFrame
