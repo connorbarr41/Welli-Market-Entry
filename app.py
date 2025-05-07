@@ -91,7 +91,7 @@ if 'current_inputs' not in st.session_state:
     st.session_state.current_inputs = {
         'country': 'Peru',
         'monthly_patients': 100.0,
-        'procedure_cost': 5000.0,
+        'procedure_cost': 1200.0,
         'financing_rate': 70.0,
         'interest_rate': 15.0,
         'medical_discount': 10.0,
@@ -284,10 +284,10 @@ st.subheader("Adjust Variables")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    sens_interest = st.slider("Interest Rate (%)", 5.0, 25.0, float(current_inputs['interest_rate']), 0.5)
+    sens_interest = st.slider("Interest Rate (%)", 5.0, 90.0, float(current_inputs['interest_rate']), 0.5)
 
 with col2:
-    sens_bad_debt = st.slider("Bad Debt (%)", 0.0, 20.0, float(current_inputs['bad_debt']), 0.5)
+    sens_bad_debt = st.slider("Bad Debt (%)", 0.0, 25.0, float(current_inputs['bad_debt']), 0.5)
 
 with col3:
     sens_revenue_mult = st.slider("Revenue Multiplier", 0.8, 1.2, 1.0, 0.01)
@@ -340,22 +340,18 @@ if 'monte_df' not in st.session_state or redo_monte:
     sim['insurance_commission']*= np.random.uniform(0.7, 1.3)  # ±30%
 
     # macro & tax variables
-    sim['interest_rate'] = np.random.uniform(5.0, 25.0)        # widen from 10–20
-    sim['bad_debt']      = np.random.uniform(1.0, 15.0)        # widen from 2–10
+    sim['interest_rate'] = np.random.uniform(5.0, 90.0)        # widen from 10–20
+    sim['bad_debt']      = np.random.uniform(1.0, 25.0)        # widen from 2–10
     sim['exchange_rate'] *= np.random.uniform(0.9, 1.1)        # ±10%
     sim['inflation_rate'] = np.random.uniform(
         base['inflation_rate'] * 0.8,
         base['inflation_rate'] * 1.2
     )  
-    sim['corporate_tax'] = np.random.uniform(
-        base['corporate_tax'] * 0.8,
-        base['corporate_tax'] * 1.2
-    )
 
     # growth assumption
     sim['patient_growth'] = np.random.uniform(
-        base['patient_growth'] * 0.7,
-        base['patient_growth'] * 1.3
+        base['patient_growth'] * 0.1,
+        base['patient_growth'] * 1.5
     )
 
     results.append(calculate_metrics(sim)['Net Profit'])
