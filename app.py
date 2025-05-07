@@ -98,7 +98,7 @@ if 'current_inputs' not in st.session_state:
         'insurance_commission': 5.0,
         'funding_cost': 8.0,
         'operating_cost': 200.0,
-        'bad_debt': 5.0,
+        'bad_debt': 8.0,
         'compliance_cost': 50000.0,
         'corporate_tax': 30.0,
         'exchange_rate': 3.75,
