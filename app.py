@@ -255,7 +255,6 @@ with col2:
     st.metric('Net Profit', f"${results['Net Profit']:,.2f}")
 
 with col3:
-    st.metric('USD Net Profit', f"${results['USD Net Profit']:,.2f}")
     st.metric('Revenue per Patient', f"${results['Total Revenue']/results['Annual Patients']:,.2f}")
     st.metric('Cost per Patient', f"${results['Total Costs']/results['Annual Patients']:,.2f}")
 
@@ -288,7 +287,6 @@ for year in range(forecast_years):
         'Revenue': year_results['Total Revenue'],
         'Costs': year_results['Total Costs'],
         'Net Profit': year_results['Net Profit'],
-        'USD Profit': year_results['USD Net Profit']
     })
 
 forecast_df = pd.DataFrame(forecast_data)
@@ -296,8 +294,7 @@ st.dataframe(forecast_df.style.format({
     'Patients': '{:,.0f}',
     'Revenue': '${:,.2f}',
     'Costs': '${:,.2f}',
-    'Net Profit': '${:,.2f}',
-    'USD Profit': '${:,.2f}'
+    'Net Profit': '${:,.2f}'
 }))
 
 # Create forecast chart
