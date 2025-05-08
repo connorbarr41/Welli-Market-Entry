@@ -359,6 +359,99 @@ sensitivity_results = calculate_metrics(sensitivity_inputs)
 st.metric("Adjusted Net Profit", f"${sensitivity_results['Net Profit']:,.2f}")
 st.metric("Adjusted Total Revenue", f"${sensitivity_results['Total Revenue']:,.2f}")
 st.metric("Adjusted Total Costs", f"${sensitivity_results['Total Costs']:,.2f}")
+
+# ---------------------------------------
+# Monte Carlo Simulation: 2-Year
+# ---------------------------------------
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+
+st.header("Two Year Monte Carlo Simulation")
+redo_monte_2yr = st.button("Redo 2-Year Monte Carlo")
+st.write("Running 1,000 scenarios over 2 years—click to rerun.")
+
+# grab inputs & set sims
+current_inputs = st.session_state.current_inputs
+simulations   = 1000
+
+if 'monte_2yr_df' not in st.session_state or redo_monte_2yr:
+    np.random.seed(None)
+    results_2yr = []
+
+    for _ in range(simulations):
+        sim = current_inputs.copy()
+
+        # one-time multipliers
+        sim['procedure_cost']  *= np.random.triangular(0.8, 1.0, 1.2)  # ±20 %
+        sim['operating_cost']  *= np.random.triangular(0.8, 1.0, 1.2)
+        sim['compliance_cost'] *= np.random.triangular(0.9, 1.0, 1.1)  # ±10 %
+        sim['funding_cost']    *= np.random.triangular(0.8, 1.0, 1.2)
+
+        # macro & tax variables
+        sim['interest_rate']  = np.clip(
+            np.random.normal(sim['interest_rate'], 0.05), 5.0, 30.0
+        )
+        sim['bad_debt']       = float(
+            np.clip(np.random.beta(2, 60), 0.01, 0.10) * 100
+        )
+        sim['inflation_rate'] = np.random.triangular(
+            sim['inflation_rate'] * 0.9,
+            sim['inflation_rate'],
+            sim['inflation_rate'] * 1.1
+        )
+        sim['corporate_tax']  = np.random.triangular(
+            sim['corporate_tax'] * 0.9,
+            sim['corporate_tax'],
+            sim['corporate_tax'] * 1.1
+        )
+
+        # 2-year projection
+        patients      = sim['monthly_patients']
+        total_rev     = 0.0
+        total_costs   = 0.0
+
+        for year in (1, 2):
+            # always use early-period growth
+            rate     = sim['patient_growth_early']
+            patients *= (1 + rate)
+
+            # annual revenue & costs
+            revenue    = patients * sim['procedure_cost']
+            operating  = patients * sim['operating_cost']
+            compliance = sim['compliance_cost']                  # annual
+            funding    = patients * sim['procedure_cost'] * (sim['funding_cost'] / 100)
+
+            total_rev   += revenue
+            total_costs += (operating + compliance + funding)
+
+        # net profit
+        pre_tax    = total_rev - total_costs
+        tax_amt    = pre_tax * (sim['corporate_tax'] / 100)
+        net_profit = pre_tax - tax_amt
+
+        results_2yr.append(net_profit)
+
+    st.session_state.monte_2yr_df = pd.DataFrame(results_2yr, columns=["Net Profit"])
+
+monte_2yr_df = st.session_state.monte_2yr_df
+
+# display
+fig2 = go.Figure(data=[go.Histogram(x=monte_2yr_df["Net Profit"], nbinsx=50)])
+fig2.update_layout(
+    title="Monte Carlo: 2-Year Net Profit Distribution",
+    xaxis_title="Net Profit",
+    yaxis_title="Frequency",
+    height=400
+)
+st.plotly_chart(fig2, use_container_width=True)
+
+st.subheader("2-Year Summary")
+st.write(f"Mean Net Profit: ${monte_2yr_df['Net Profit'].mean():,.2f}")
+st.write(f"Probability of Loss: {(monte_2yr_df['Net Profit'] < 0).mean()*100:.1f}%")
+
+
+
 # ---------------------------------------
 # Monte Carlo Simulation (Annual, 5-Year)
 # ---------------------------------------
@@ -366,7 +459,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
-st.header("Monte Carlo Simulation")
+st.header("Five Year Monte Carlo Simulation")
 redo_monte = st.button("Redo Monte Carlo")
 st.write("Running 1,000 scenarios with annual updates—click to rerun.")
 
