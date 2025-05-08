@@ -16,32 +16,22 @@ COUNTRY_CONFIG = {
 }
 
 @st.cache_data(show_spinner=False)
-def fetch_fx_rate(to_currency: str) -> float:
-    """
-    Fetches USD → to_currency exchange rate via exchangerate.host
-    """
-    resp = requests.get(
-        "https://api.exchangerate.host/latest",
-        params={"base": "USD", "symbols": to_currency},
-        timeout=5
-    )
-    resp.raise_for_status()
-    return resp.json()["rates"][to_currency]
-st.set_page_config(page_title="LatAm Financial Model", layout="wide")
 
-def fetch_exchange_rates(base_currency='USD'):
-    currencies = ['PEN', 'COP', 'CLP']
-    rates = {}
-    
-    for currency in currencies:
-        try:
-            response = requests.get(f'https://api.exchangerate-api.com/v4/latest/{base_currency}')
-            data = response.json()
-            rates[currency] = data['rates'].get(currency, None)
-        except:
-            rates[currency] = None
-    
-    return rates
+def fetch_exchange_rates(base_currency='USD') -> dict:
+    """
+    Fetch live USD → local currency rates via exchangerate-api.com.
+    Returns a dict {currency_code: rate} or empty on failure.
+    """
+    url = f"https://api.exchangerate-api.com/v4/latest/{base_currency}"
+    try:
+        resp = requests.get(url, timeout=5)
+        resp.raise_for_status()
+        data = resp.json()
+        return data.get("rates", {})
+    except Exception as e:
+        st.warning(f"FX fetch failed: {e}; defaulting rates to 1.0")
+        return {}
+
 
 def calculate_metrics(inputs):
     annual_patients = inputs['monthly_patients'] * 12
@@ -162,22 +152,11 @@ with st.sidebar:
         value=float(st.session_state.current_inputs.get("compliance_cost", 50000.0)),
         min_value=0.0
     )
-# mapping of country → local currency code & statutory corporate tax rate
-COUNTRY_CONFIG = {
-    "Peru":      {"currency": "PEN", "tax_rate": 29.5},
-    "Mexico":    {"currency": "MXN", "tax_rate": 30.0},
-    "Brazil":    {"currency": "BRL", "tax_rate": 34.0},
-    "Argentina": {"currency": "ARS", "tax_rate": 30.0},
-    "Chile":     {"currency": "CLP", "tax_rate": 25.0},
-    "Colombia":  {"currency": "COP", "tax_rate": 35.0},
-    "Uruguay":   {"currency": "UYU", "tax_rate": 25.0},
-    # …add more as needed…
-}
-# Fetch current exchange rates
-exchange_rates = fetch_exchange_rates()
-default_rates = {'PEN': 3.75, 'COP': 4000, 'CLP': 850}
-country_currency = {'Peru': 'PEN', 'Colombia': 'COP', 'Chile': 'CLP'}
-current_rate = exchange_rates.get(country_currency[country], default_rates[country_currency[country]])
+# Fetch current exchange rates and Tax
+rates = fetch_exchange_rates()
+cfg = COUNTRY_CONFIG[country]
+exchange_rate = rates.get(cfg["currency"], 1.0)
+corporate_tax = cfg["tax_rate"]
 
 # Input parameters
 col1, col2 = st.sidebar.columns(2)
@@ -226,11 +205,12 @@ with col2:
                                    min_value=0.0, max_value=100.0)
 
 # Update session state
-current_inputs = {
+st.session_state.current_inputs.update({
     'country': country,
+    'exchange_rate': exchange_rate,
+    'corporate_tax': corporate_tax,
     'monthly_patients': monthly_patients,
     'procedure_cost': procedure_cost,
-    'financing_rate': 100.0,
     'interest_rate': interest_rate,
     'medical_discount': medical_discount,
     'insurance_commission': insurance_commission,
@@ -238,13 +218,9 @@ current_inputs = {
     'operating_cost': operating_cost,
     'bad_debt': bad_debt,
     'compliance_cost': compliance_cost,
-    'corporate_tax': corporate_tax,
-    'exchange_rate': exchange_rate,
     'inflation_rate': inflation_rate,
     'patient_growth': patient_growth
-}
-
-st.session_state.current_inputs = current_inputs
+})
 
 # Calculate results
 results = calculate_metrics(current_inputs)
