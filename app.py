@@ -194,9 +194,12 @@ with col2:
     compliance_cost = st.number_input('Annual Compliance Cost',
                                     value=float(st.session_state.current_inputs['compliance_cost']),
                                     min_value=0.0)
-    corporate_tax = st.number_input('Corporate Tax Rate (%)',
-                                  value=float(st.session_state.current_inputs['corporate_tax']),
-                                  min_value=0.0, max_value=100.0)
+    corporate_tax = st.number_input(
+            'Corporate Tax Rate (%)',
+            value=float(corporate_tax),            # use the rate from COUNTRY_CONFIG
+            min_value=0.0, max_value=100.0,
+            key="corporate_tax"                    # explicit key to sync state
+        )
     exchange_rate = st.number_input('Exchange Rate',
                                   value=exchange_rate,
                                   min_value=0.0)
