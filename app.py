@@ -32,6 +32,13 @@ def fetch_exchange_rates(base_currency='USD') -> dict:
         st.warning(f"FX fetch failed: {e}; defaulting rates to 1.0")
         return {}
 
+def fetch_fx_rate(to_currency: str) -> float:
+    """
+    Alias for backward compatibility:
+    returns USD→to_currency rate or 1.0 if missing.
+    """
+    rates = fetch_exchange_rates()
+    return rates.get(to_currency, 1.0)
 
 def calculate_metrics(inputs):
     annual_patients = inputs['monthly_patients'] * 12
