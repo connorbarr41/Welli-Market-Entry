@@ -64,7 +64,7 @@ def calculate_metrics(inputs):
     pre_tax_profit = total_revenue - total_costs
     tax = pre_tax_profit * (inputs['corporate_tax'] / 100)
     net_profit = pre_tax_profit - tax
-    usd_profit = net_profit / inputs['exchange_rate']
+    usd_profit = net_profit
     
     return {
         'Annual Patients': annual_patients,
@@ -120,7 +120,6 @@ if 'current_inputs' not in st.session_state:
         'bad_debt': 8.0,
         'compliance_cost': 50000.0,
         'corporate_tax': 29.5,
-        'exchange_rate': 3.75,
         'inflation_rate': 4.0,
         'patient_growth_early': 120.0,
         'patient_growth_late': 50
@@ -200,9 +199,6 @@ with col2:
             min_value=0.0, max_value=100.0,
             key="corporate_tax"                    # explicit key to sync state
         )
-    exchange_rate = st.number_input('Exchange Rate',
-                                  value=exchange_rate,
-                                  min_value=0.0)
     inflation_rate = st.number_input('Inflation Rate (%)',
                                    value=float(st.session_state.current_inputs['inflation_rate']),
                                    min_value=0.0, max_value=10.0)
@@ -225,7 +221,6 @@ with col2:
 # Update session state
 st.session_state.current_inputs.update({
     'country': country,
-    'exchange_rate': exchange_rate,
     'corporate_tax': corporate_tax,
     'monthly_patients': monthly_patients,
     'procedure_cost': procedure_cost,
@@ -409,7 +404,6 @@ if 'monte_df' not in st.session_state or redo_monte:
         # macro & tax variables
         sim['interest_rate']  = np.random.uniform(5.0, 90.0)
         sim['bad_debt']       = np.random.uniform(1.0, 25.0)
-        sim['exchange_rate'] *= np.random.uniform(0.9, 1.1)
         sim['inflation_rate'] = np.random.uniform(
             current_inputs['inflation_rate'] * 0.8,
             current_inputs['inflation_rate'] * 1.2
