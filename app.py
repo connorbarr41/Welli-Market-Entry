@@ -299,7 +299,7 @@ st.dataframe(forecast_df.style.format({
 # Create forecast chart
 fig = go.Figure()
 
-metrics = ['Revenue', 'Costs', 'Net Profit', 'USD Profit']
+metrics = ['Revenue', 'Costs', 'Net Profit']
 for metric in metrics:
     fig.add_trace(go.Scatter(
         name=metric,
