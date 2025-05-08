@@ -122,7 +122,8 @@ if 'current_inputs' not in st.session_state:
         'corporate_tax': 29.5,
         'exchange_rate': 3.75,
         'inflation_rate': 4.0,
-        'patient_growth': 120.0
+        'patient_growth_early': 120.0
+        'patient_growth_late': 50
     }
 # enforce 100% financing everywhere
     current_inputs = st.session_state.current_inputs
@@ -202,10 +203,22 @@ with col2:
     inflation_rate = st.number_input('Inflation Rate (%)',
                                    value=float(st.session_state.current_inputs['inflation_rate']),
                                    min_value=0.0, max_value=10.0)
-    patient_growth = st.number_input('Patient Growth Rate (%)',
-                                   value=float(st.session_state.current_inputs['patient_growth']),
-                                   min_value=0.0, max_value=150.0)
+    patient_growth_early = st.number_input(
+        "Annual Growth Rate (Years 1–2 %)",
+        value=float(st.session_state.current_inputs.get("patient_growth_early", 10.0)),
+        min_value=0.0, max_value=200.0,
+        step=0.1,
+        key="patient_growth_early"
+    ) / 100
 
+    patient_growth_late = st.number_input(
+        "Annual Growth Rate (Years 3–5 %)",
+        value=float(st.session_state.current_inputs.get("patient_growth_late", 5.0)),
+        min_value=0.0, max_value=100.0,
+        step=0.1,
+        key="patient_growth_late"
+    ) / 100
+    
 # Update session state
 st.session_state.current_inputs.update({
     'country': country,
@@ -221,7 +234,8 @@ st.session_state.current_inputs.update({
     'bad_debt': bad_debt,
     'compliance_cost': compliance_cost,
     'inflation_rate': inflation_rate,
-    'patient_growth': patient_growth
+    'patient_growth_early': patient_growth_early,
+    'patient_growth_late': patient_growth_late
 })
 current_inputs = st.session_state.current_inputs
 # Calculate results
@@ -258,7 +272,13 @@ forecast_data = []
 
 for year in range(forecast_years):
     year_inputs = current_inputs.copy()
-    year_inputs['monthly_patients'] *= (1 + patient_growth/100) ** year
+# use early growth for years 1–2, late growth for years 3–5
+    rate = (
+       current_inputs['patient_growth_early']
+               if year < 2 else current_inputs['patient_growth_late']
+    )
+    year_inputs['monthly_patients'] *= (1 + rate) ** year
+    
     year_inputs['procedure_cost'] *= (1 + inflation_rate/100) ** year
     year_inputs['operating_cost'] *= (1 + inflation_rate/100) ** year
     year_inputs['compliance_cost'] *= (1 + inflation_rate/100) ** year
