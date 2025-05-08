@@ -223,7 +223,7 @@ st.session_state.current_inputs.update({
     'inflation_rate': inflation_rate,
     'patient_growth': patient_growth
 })
-
+current_inputs = st.session_state.current_inputs
 # Calculate results
 results = calculate_metrics(current_inputs)
 
@@ -312,28 +312,24 @@ st.subheader("Adjust Variables")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    sens_interest = st.slider("Sensitivity—Interest Rate (%)", 5.0, 90.0, float(current_inputs['interest_rate']), 0.5,
-    key="sens_interest_rate"            # explicit key
+    sens_interest = st.slider(
+     "Sensitivity—Interest Rate (%)",     # new label
+     5.0, 90.0, float(current_inputs['interest_rate']), 0.5,
+     key="sens_interest_rate"              # explicit key
   )
 with col2:
     sens_bad_debt = st.slider(
-    "Sensitivity—Bad Debt (%)",         # unique label
-    0.0,
-    25.0,
-    float(current_inputs['bad_debt']),
-    0.5,
-    key="sens_bad_debt"                 # explicit key
-)
+     "Sensitivity—Bad Debt (%)",          # new label
+     0.0, 25.0, float(current_inputs['bad_debt']), 0.5,
+     key="sens_bad_debt"                  # explicit key
+ )              # explicit key
 
 
 with col3:
-    sens_revenue_mult = st.slider(
-    "Sensitivity—Revenue Multiplier",   # unique label
-    0.8,
-    1.2,
-    1.0,
-    0.01,
-    key="sens_revenue_mult"             # explicit key
+     sens_revenue_mult = st.slider(
+     "Sensitivity—Revenue Multiplier",    # new label
+     0.8, 1.2, 1.0, 0.01,
+     key="sens_revenue_mult"              # explicit key          
 )
 
 
