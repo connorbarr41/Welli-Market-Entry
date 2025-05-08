@@ -109,12 +109,12 @@ def create_waterfall_chart(results):
 if 'current_inputs' not in st.session_state:
     st.session_state.current_inputs = {
         'country': 'Peru',
-        'monthly_patients': 1151.0,
-        'procedure_cost': 1200.0,
+        'monthly_patients': 200.0,
+        'procedure_cost': 1000.0,
         'financing_rate': 100.0,
         'interest_rate': 28.0,
         'medical_discount': 5.0,
-        'insurance_commission': 1.0,
+        'insurance_commission': 0.3,
         'funding_cost': 21.0,
         'operating_cost': 11.0,
         'bad_debt': 8.0,
@@ -122,7 +122,7 @@ if 'current_inputs' not in st.session_state:
         'corporate_tax': 29.5,
         'exchange_rate': 3.75,
         'inflation_rate': 4.0,
-        'patient_growth': 30.0
+        'patient_growth': 120.0
     }
 # enforce 100% financing everywhere
     st.session_state.current_inputs['financing_rate'] = 100.0
