@@ -415,12 +415,17 @@ if 'monte_df' not in st.session_state or redo_monte:
             current_inputs['corporate_tax'] * 0.8,
             current_inputs['corporate_tax'] * 1.2
         )
-
-        # growth assumption
-        sim['patient_growth'] = np.random.uniform(
-            current_inputs['patient_growth'] * 0.1,
-            current_inputs['patient_growth'] * 1.5
+        # draw separate early & late growth rates
+        sim_growth_early = np.random.uniform(
+            current_inputs['patient_growth_early'] * 0.1,
+            current_inputs['patient_growth_early'] * 1.5
         )
+        sim_growth_late  = np.random.uniform(
+            current_inputs['patient_growth_late']  * 0.1,
+            current_inputs['patient_growth_late']  * 1.5
+        )
+        # apply the early‐period growth to our base patients
+        sim['monthly_patients'] *= (1 + sim_growth_early)
 
         results.append(calculate_metrics(sim)['Net Profit'])
 
