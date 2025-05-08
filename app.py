@@ -145,14 +145,6 @@ with st.sidebar:
         )
     )
 
-    # Fetch FX and tax for the selected country
-    cfg = COUNTRY_CONFIG[country]
-    exchange_rate = fetch_fx_rate(cfg["currency"])
-    corporate_tax = cfg["tax_rate"]
-
-    # Other existing inputs (monthly_patients, procedure_cost, etc.) remain here
-    # ...
-
     # New: Compliance Cost as a variable input
     compliance_cost = st.number_input(
         "Compliance Cost (USD per year)",
