@@ -73,7 +73,6 @@ def calculate_metrics(inputs):
         'Pre-tax Profit': pre_tax_profit,
         'Tax': tax,
         'Net Profit': net_profit,
-        'USD Net Profit': usd_profit,
         'Revenue Breakdown': revenue,
         'Cost Breakdown': costs
     }
