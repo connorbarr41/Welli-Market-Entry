@@ -5,6 +5,28 @@ import requests
 from datetime import datetime, timedelta
 import numpy as np
 
+COUNTRY_CONFIG = {
+    "Peru":      {"currency": "PEN", "tax_rate": 29.5},
+    "Mexico":    {"currency": "MXN", "tax_rate": 30.0},
+    "Brazil":    {"currency": "BRL", "tax_rate": 34.0},
+    "Argentina": {"currency": "ARS", "tax_rate": 30.0},
+    "Chile":     {"currency": "CLP", "tax_rate": 25.0},
+    "Colombia":  {"currency": "COP", "tax_rate": 35.0},
+    "Uruguay":   {"currency": "UYU", "tax_rate": 25.0},
+}
+
+@st.cache_data(show_spinner=False)
+def fetch_fx_rate(to_currency: str) -> float:
+    """
+    Fetches USD → to_currency exchange rate via exchangerate.host
+    """
+    resp = requests.get(
+        "https://api.exchangerate.host/latest",
+        params={"base": "USD", "symbols": to_currency},
+        timeout=5
+    )
+    resp.raise_for_status()
+    return resp.json()["rates"][to_currency]
 st.set_page_config(page_title="LatAm Financial Model", layout="wide")
 
 def fetch_exchange_rates(base_currency='USD'):
@@ -90,20 +112,20 @@ def create_waterfall_chart(results):
 if 'current_inputs' not in st.session_state:
     st.session_state.current_inputs = {
         'country': 'Peru',
-        'monthly_patients': 931.0,
+        'monthly_patients': 1151.0,
         'procedure_cost': 1200.0,
         'financing_rate': 100.0,
         'interest_rate': 28.0,
-        'medical_discount': 10.0,
-        'insurance_commission': 5.0,
-        'funding_cost': 8.0,
-        'operating_cost': 200.0,
+        'medical_discount': 5.0,
+        'insurance_commission': 1.0,
+        'funding_cost': 21.0,
+        'operating_cost': 11.0,
         'bad_debt': 8.0,
         'compliance_cost': 50000.0,
-        'corporate_tax': 30.0,
+        'corporate_tax': 29.5,
         'exchange_rate': 3.75,
         'inflation_rate': 4.0,
-        'patient_growth': 5.0
+        'patient_growth': 30.0
     }
 # enforce 100% financing everywhere
     st.session_state.current_inputs['financing_rate'] = 100.0
@@ -116,12 +138,41 @@ st.markdown('Financial modeling tool for medical procedures in Latin America')
 st.sidebar.header('Model Parameters')
 
 # Country selection
-country = st.sidebar.selectbox(
-    'Country',
-    ['Peru', 'Colombia', 'Chile'],
-    index=['Peru', 'Colombia', 'Chile'].index(st.session_state.current_inputs['country'])
-)
+with st.sidebar:
+    # Country selector from the new map
+    country = st.selectbox(
+        "Country",
+        options=list(COUNTRY_CONFIG.keys()),
+        index=list(COUNTRY_CONFIG.keys()).index(
+            st.session_state.current_inputs.get("country", "Peru")
+        )
+    )
 
+    # Fetch FX and tax for the selected country
+    cfg = COUNTRY_CONFIG[country]
+    exchange_rate = fetch_fx_rate(cfg["currency"])
+    corporate_tax = cfg["tax_rate"]
+
+    # Other existing inputs (monthly_patients, procedure_cost, etc.) remain here
+    # ...
+
+    # New: Compliance Cost as a variable input
+    compliance_cost = st.number_input(
+        "Compliance Cost (USD per year)",
+        value=float(st.session_state.current_inputs.get("compliance_cost", 50000.0)),
+        min_value=0.0
+    )
+# mapping of country → local currency code & statutory corporate tax rate
+COUNTRY_CONFIG = {
+    "Peru":      {"currency": "PEN", "tax_rate": 29.5},
+    "Mexico":    {"currency": "MXN", "tax_rate": 30.0},
+    "Brazil":    {"currency": "BRL", "tax_rate": 34.0},
+    "Argentina": {"currency": "ARS", "tax_rate": 30.0},
+    "Chile":     {"currency": "CLP", "tax_rate": 25.0},
+    "Colombia":  {"currency": "COP", "tax_rate": 35.0},
+    "Uruguay":   {"currency": "UYU", "tax_rate": 25.0},
+    # …add more as needed…
+}
 # Fetch current exchange rates
 exchange_rates = fetch_exchange_rates()
 default_rates = {'PEN': 3.75, 'COP': 4000, 'CLP': 850}
