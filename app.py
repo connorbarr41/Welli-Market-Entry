@@ -360,18 +360,20 @@ st.metric("Adjusted Net Profit", f"${sensitivity_results['Net Profit']:,.2f}")
 st.metric("Adjusted Total Revenue", f"${sensitivity_results['Total Revenue']:,.2f}")
 st.metric("Adjusted Total Costs", f"${sensitivity_results['Total Costs']:,.2f}")
 # ---------------------------------------
-# Monte Carlo Simulation
+# Monte Carlo Simulation (Annual, 5-Year)
 # ---------------------------------------
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+
 st.header("Monte Carlo Simulation")
 redo_monte = st.button("Redo Monte Carlo")
-st.write("Running 1,000 scenarios with realistic patient-growth paths—click to rerun.")
+st.write("Running 1,000 scenarios with annual updates—click to rerun.")
 
-# Ensure our baseline inputs
+# grab our inputs and set number of sims
 current_inputs = st.session_state.current_inputs
-current_inputs['financing_rate'] = 100.0
 simulations = 1000
 
-# Run simulation on first load or when button clicked
 if 'monte_df' not in st.session_state or redo_monte:
     np.random.seed(None)
     results = []
@@ -379,86 +381,70 @@ if 'monte_df' not in st.session_state or redo_monte:
     for _ in range(simulations):
         sim = current_inputs.copy()
 
-        # 1) Initial patients: centered on 200, ±20% noise
-        p0 = np.random.normal(
-            loc=sim['monthly_patients'],
-            scale=sim['monthly_patients'] * 0.2
-        )
-        patients = max(p0, 0)
+        # 1) One-time multipliers for cost & revenue drivers
+        sim['procedure_cost']  *= np.random.triangular(0.8, 1.0, 1.2)  # ±20%
+        sim['operating_cost']  *= np.random.triangular(0.8, 1.0, 1.2)
+        sim['compliance_cost'] *= np.random.triangular(0.9, 1.0, 1.1)  # ±10%
+        sim['funding_cost']    *= np.random.triangular(0.8, 1.0, 1.2)
 
-        # 2) One-time multipliers for cost & revenue drivers
-        pc_mult = np.random.triangular(0.8, 1.0, 1.2)   # Procedure cost ±20%
-        oc_mult = np.random.triangular(0.8, 1.0, 1.2)   # Operating cost ±20%
-        cc_mult = np.random.triangular(0.9, 1.0, 1.1)   # Compliance ±10%
-        fc_mult = np.random.triangular(0.8, 1.0, 1.2)   # Funding cost ±20%
-        md_mult = np.random.triangular(0.8, 1.0, 1.2)   # Medical discount ±20%
-        ic_mult = np.random.triangular(0.8, 1.0, 1.2)   # Insurance comm. ±20%
-
-        sim['procedure_cost']     *= pc_mult
-        sim['operating_cost']     *= oc_mult
-        sim['compliance_cost']    *= cc_mult
-        sim['funding_cost']       *= fc_mult
-        sim['medical_discount']     *= md_mult
-        sim['insurance_commission'] *= ic_mult
-
-        # 3) Macro variables drawn once per scenario
+        # 2) Macro & tax variables drawn once per scenario
         sim['interest_rate']  = np.clip(
-            np.random.normal(sim['interest_rate'], 5.0), 5.0, 30.0
+            np.random.normal(sim['interest_rate'], 0.05),  # 5 ppt sd
+            0.05, 0.30
         )
-        sim['bad_debt']       = float(np.clip(
-            np.random.beta(2, 60), 0.01, 0.10
-        ) * 100)                                    # scale to %
+        sim['bad_debt'] = float(
+            np.clip(np.random.beta(2, 60), 0.01, 0.10) * 100  # 1–10%
+        )
         sim['inflation_rate'] = np.random.triangular(
             sim['inflation_rate'] * 0.9,
             sim['inflation_rate'],
             sim['inflation_rate'] * 1.1
         )
-        sim['corporate_tax']  = np.random.triangular(
+        sim['corporate_tax'] = np.random.triangular(
             sim['corporate_tax'] * 0.9,
             sim['corporate_tax'],
             sim['corporate_tax'] * 1.1
         )
 
-        # 4) Month-by-month patient growth (200 → 220 → …)
+        # 3) Year-by-year patient & financial projection
+        patients = sim['monthly_patients']
         total_revenue = 0.0
         total_costs   = 0.0
 
-        for month in range(1, 61):  # 60 months = 5 years
-            # draw growth around 10% ±2 ppt, plus small shock
-            growth = np.random.triangular(0.08, 0.10, 0.12)
-            shock  = np.random.normal(0, 0.02)
-            rate   = max(growth + shock, 0)
+        for year in range(1, 6):  # years 1 to 5
+            # pick growth rate for this year
+            rate = (
+                sim['patient_growth_early']
+                if year <= 2
+                else sim['patient_growth_late']
+            )
+            patients *= (1 + rate)
 
-            if month > 1:
-                patients *= (1 + rate)
-
-            # revenue & cost for this month
-            revenue = patients * sim['procedure_cost']
-            costs   = (patients * sim['operating_cost'] +
-            sim['compliance_cost'] / 12 +
-            patients * sim['procedure_cost'] * (sim['funding_cost'] / 100) / 12
-                )
+            # compute annual revenue & costs
+            revenue   = patients * sim['procedure_cost']
+            operating = patients * sim['operating_cost']
+            compliance= sim['compliance_cost']             # annual
+            funding   = patients * sim['procedure_cost'] * (sim['funding_cost'] / 100)
 
             total_revenue += revenue
-            total_costs   += costs
+            total_costs   += (operating + compliance + funding)
 
-        # 5) Compute net profit at end of 5 years
-        pre_tax = total_revenue - total_costs
-        tax_amt = pre_tax * (sim['corporate_tax'] / 100)
-        net     = pre_tax - tax_amt
+        # 4) Profit calculation
+        pre_tax    = total_revenue - total_costs
+        tax_amt    = pre_tax * (sim['corporate_tax'] / 100)
+        net_profit = pre_tax - tax_amt
 
-        results.append(net)
+        results.append(net_profit)
 
-    # store results in session state
+    # save for re-use until the button is clicked again
     st.session_state.monte_df = pd.DataFrame(results, columns=["Net Profit"])
 
-# bring the DataFrame back out
 monte_df = st.session_state.monte_df
 
-# render histogram & summary
+# 5) Display histogram & summary
 fig = go.Figure(data=[go.Histogram(x=monte_df["Net Profit"], nbinsx=50)])
 fig.update_layout(
-    title="Monte Carlo: Net Profit Distribution (5-Year)",
+    title="Monte Carlo: 5-Year Net Profit Distribution (Annual)",
     xaxis_title="Net Profit",
     yaxis_title="Frequency",
     height=500
