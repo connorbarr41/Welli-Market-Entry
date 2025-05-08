@@ -194,7 +194,7 @@ with col2:
                                   value=float(st.session_state.current_inputs['corporate_tax']),
                                   min_value=0.0, max_value=100.0)
     exchange_rate = st.number_input('Exchange Rate',
-                                  value=current_rate,
+                                  value=exchange_rate,
                                   min_value=0.0)
     inflation_rate = st.number_input('Inflation Rate (%)',
                                    value=float(st.session_state.current_inputs['inflation_rate']),
