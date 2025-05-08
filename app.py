@@ -201,7 +201,7 @@ with col2:
                                    min_value=0.0, max_value=100.0)
     patient_growth = st.number_input('Patient Growth Rate (%)',
                                    value=float(st.session_state.current_inputs['patient_growth']),
-                                   min_value=0.0, max_value=100.0)
+                                   min_value=0.0, max_value=200.0)
 
 # Update session state
 st.session_state.current_inputs.update({
