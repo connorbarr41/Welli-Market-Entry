@@ -364,13 +364,14 @@ st.metric("Adjusted Total Costs", f"${sensitivity_results['Total Costs']:,.2f}")
 # ---------------------------------------
 st.header("Monte Carlo Simulation")
 redo_monte = st.button("Redo Monte Carlo")
-st.write("Simulating 1,000 scenarios with widened variability—click the button to rerun.")
+st.write("Running 1,000 scenarios with realistic patient-growth paths—click to rerun.")
 
+# Ensure our baseline inputs
 current_inputs = st.session_state.current_inputs
 current_inputs['financing_rate'] = 100.0
-simulations   = 1000
+simulations = 1000
 
-# run on first load or when button is clicked
+# Run simulation on first load or when button clicked
 if 'monte_df' not in st.session_state or redo_monte:
     np.random.seed(None)
     results = []
@@ -378,60 +379,88 @@ if 'monte_df' not in st.session_state or redo_monte:
     for _ in range(simulations):
         sim = current_inputs.copy()
 
-        # revenue drivers
-        sim['monthly_patients'] = max(
-            0,
-            np.random.normal(
-                current_inputs['monthly_patients'],
-                current_inputs['monthly_patients'] * 0.2
+        # 1) Initial patients: centered on 200, ±20% noise
+        p0 = np.random.normal(
+            loc=sim['monthly_patients'],
+            scale=sim['monthly_patients'] * 0.2
+        )
+        patients = max(p0, 0)
+
+        # 2) One-time multipliers for cost & revenue drivers
+        pc_mult = np.random.triangular(0.8, 1.0, 1.2)   # Procedure cost ±20%
+        oc_mult = np.random.triangular(0.8, 1.0, 1.2)   # Operating cost ±20%
+        cc_mult = np.random.triangular(0.9, 1.0, 1.1)   # Compliance ±10%
+        fc_mult = np.random.triangular(0.8, 1.0, 1.2)   # Funding cost ±20%
+        md_mult = np.random.triangular(0.8, 1.0, 1.2)   # Medical discount ±20%
+        ic_mult = np.random.triangular(0.8, 1.0, 1.2)   # Insurance comm. ±20%
+
+        sim['procedure_cost']     *= pc_mult
+        sim['operating_cost']     *= oc_mult
+        sim['compliance_cost']    *= cc_mult
+        sim['funding_cost']       *= fc_mult
+        sim['medical_discount']     *= md_mult
+        sim['insurance_commission'] *= ic_mult
+
+        # 3) Macro variables drawn once per scenario
+        sim['interest_rate']  = np.clip(
+            np.random.normal(sim['interest_rate'], 5.0), 5.0, 30.0
+        )
+        sim['bad_debt']       = float(np.clip(
+            np.random.beta(2, 60), 0.01, 0.10
+        ) * 100)                                    # scale to %
+        sim['inflation_rate'] = np.random.triangular(
+            sim['inflation_rate'] * 0.9,
+            sim['inflation_rate'],
+            sim['inflation_rate'] * 1.1
+        )
+        sim['corporate_tax']  = np.random.triangular(
+            sim['corporate_tax'] * 0.9,
+            sim['corporate_tax'],
+            sim['corporate_tax'] * 1.1
+        )
+
+        # 4) Month-by-month patient growth (200 → 220 → …)
+        total_revenue = 0.0
+        total_costs   = 0.0
+
+        for month in range(1, 61):  # 60 months = 5 years
+            # draw growth around 10% ±2 ppt, plus small shock
+            growth = np.random.triangular(0.08, 0.10, 0.12)
+            shock  = np.random.normal(0, 0.02)
+            rate   = max(growth + shock, 0)
+
+            if month > 1:
+                patients *= (1 + rate)
+
+            # revenue & cost for this month
+            revenue = patients * sim['procedure_cost']
+            costs   = (
+                patients * sim['operating_cost'] +
+                sim['compliance_cost'] / 12 +  # spread annual cost
+                financed_amount * (sim['funding_cost'] / 100) / 12 +
+                0  # add other fixed/monthly items here if needed
             )
-        )
-        sim['procedure_cost'] *= np.random.uniform(0.7, 1.3)
 
-        # cost drivers
-        sim['operating_cost']  *= np.random.uniform(0.7, 1.3)
-        sim['compliance_cost'] *= np.random.uniform(0.8, 1.2)
-        sim['funding_cost']    *= np.random.uniform(0.7, 1.3)
+            total_revenue += revenue
+            total_costs   += costs
 
-        # fees & discounts
-        sim['medical_discount']     *= np.random.uniform(0.7, 1.3)
-        sim['insurance_commission'] *= np.random.uniform(0.7, 1.3)
+        # 5) Compute net profit at end of 5 years
+        pre_tax = total_revenue - total_costs
+        tax_amt = pre_tax * (sim['corporate_tax'] / 100)
+        net     = pre_tax - tax_amt
 
-        # macro & tax variables
-        sim['interest_rate']  = np.random.uniform(5.0, 90.0)
-        sim['bad_debt']       = np.random.uniform(1.0, 25.0)
-        sim['inflation_rate'] = np.random.uniform(
-            current_inputs['inflation_rate'] * 0.8,
-            current_inputs['inflation_rate'] * 1.2
-        )
-        sim['corporate_tax'] = np.random.uniform(
-            current_inputs['corporate_tax'] * 0.8,
-            current_inputs['corporate_tax'] * 1.2
-        )
-        # draw separate early & late growth rates
-        sim_growth_early = np.random.uniform(
-            current_inputs['patient_growth_early'] * 0.1,
-            current_inputs['patient_growth_early'] * 1.5
-        )
-        sim_growth_late  = np.random.uniform(
-            current_inputs['patient_growth_late']  * 0.1,
-            current_inputs['patient_growth_late']  * 1.5
-        )
-        # apply the early‐period growth to our base patients
-        sim['monthly_patients'] *= (1 + sim_growth_early)
+        results.append(net)
 
-        results.append(calculate_metrics(sim)['Net Profit'])
-
+    # store results in session state
     st.session_state.monte_df = pd.DataFrame(results, columns=["Net Profit"])
 
-
-# pull in the DataFrame
+# bring the DataFrame back out
 monte_df = st.session_state.monte_df
 
-# chart & stats
+# render histogram & summary
 fig = go.Figure(data=[go.Histogram(x=monte_df["Net Profit"], nbinsx=50)])
 fig.update_layout(
-    title="Monte Carlo Simulation: Net Profit Distribution",
+    title="Monte Carlo: Net Profit Distribution (5-Year)",
     xaxis_title="Net Profit",
     yaxis_title="Frequency",
     height=500
