@@ -434,11 +434,10 @@ if 'monte_df' not in st.session_state or redo_monte:
 
             # revenue & cost for this month
             revenue = patients * sim['procedure_cost']
-             costs   = (
-            patients * sim['operating_cost'] +
+            costs   = (patients * sim['operating_cost'] +
             sim['compliance_cost'] / 12 +
             patients * sim['procedure_cost'] * (sim['funding_cost'] / 100) / 12
-        )
+                )
 
             total_revenue += revenue
             total_costs   += costs
