@@ -338,19 +338,19 @@ with col2:
 
 
 with col3:
-     sens_patient_mult = st.slider(
-     "Sensitivity—Patient Count Multiplier",
-        min_value=0.8,
-        max_value=1.2,
-        value=1.0,
-        step=0.01,
-        key="sens_patient_mult"
-    )
+    sens_patient_count = st.slider(
+        "Sensitivity—Monthly Patients",
+        min_value=200,
+        max_value=200_000,
+        value=int(current_inputs["monthly_patients"]),
+        step=100,
+        key="sens_patient_count"
+    )     
 # Apply sensitivity inputs (now only scaling patient count)
 sensitivity_inputs = current_inputs.copy()
 sensitivity_inputs['interest_rate']    = sens_interest
 sensitivity_inputs['bad_debt']         = sens_bad_debt
-sensitivity_inputs['monthly_patients'] *= sens_patient_mult
+sensitivity_inputs['monthly_patients'] *= sens_patient_count
 
 
 
