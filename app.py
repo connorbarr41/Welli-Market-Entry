@@ -477,7 +477,23 @@ if 'monte_df' not in st.session_state or redo_monte:
         sim = current_inputs.copy()
 
         # apply random draws for cost & macro here as before…
-
+        # one-time multipliers (±20% costs, macro draws)
+        sim['procedure_cost']  *= np.random.triangular(0.8, 1.0, 1.2)
+        sim['operating_cost']  *= np.random.triangular(0.8, 1.0, 1.2)
+        sim['compliance_cost'] *= np.random.triangular(0.9, 1.0, 1.1)
+        sim['funding_cost']    *= np.random.triangular(0.8, 1.0, 1.2)
+        sim['interest_rate']   = np.clip(
+            np.random.normal(sim['interest_rate'], 0.05), 5.0, 30.0
+        )
+        sim['bad_debt']        = float(
+            np.clip(np.random.beta(2, 60), 0.01, 0.10) * 100
+        )
+        sim['inflation_rate']  = np.random.triangular(
+            sim['inflation_rate']*0.9, sim['inflation_rate'], sim['inflation_rate']*1.1
+        )
+        sim['corporate_tax']   = np.random.triangular(
+            sim['corporate_tax']*0.9, sim['corporate_tax'], sim['corporate_tax']*1.1
+        )
         # 5-year forecast using calculate_metrics
         cumulative_net = 0.0
         patients       = sim['monthly_patients']
