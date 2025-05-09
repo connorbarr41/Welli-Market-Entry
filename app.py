@@ -496,7 +496,7 @@ if 'monte_df' not in st.session_state or redo_monte:
 monte_df = st.session_state.monte_df
 
     # save for re-use until the button is clicked again
-    st.session_state.monte_df = pd.DataFrame(results, columns=["Net Profit"])
+st.session_state.monte_df = pd.DataFrame(results, columns=["Net Profit"])
 
 monte_df = st.session_state.monte_df
 
