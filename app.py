@@ -410,37 +410,29 @@ if 'monte_2yr_df' not in st.session_state or redo_monte_2yr:
             sim['corporate_tax'],
             sim['corporate_tax'] * 1.1
         )
-
-        # 2-year projection
-        patients      = sim['monthly_patients']
-        total_rev     = 0.0
-        total_costs   = 0.0
+        # Build a 2-Year forecast using calculate_metrics
+       cumulative_net = 0.0
+       patients = sim['monthly_patients']
 
         for year in (1, 2):
-            # always use early-period growth
-            rate     = sim['patient_growth_early'] / 100
-            patients *= (1 + rate)
+            # apply early growth rate
+            patients *= (1 + sim['patient_growth_early'] / 100)
 
-            # annual revenue & costs
-            financed = patients * sim['procedure_cost'] * (sim['financing_rate'] / 100)
-            revenue  = (
-            financed * (sim['interest_rate']   / 100)
-            + financed * (sim['medical_discount']/ 100)
-            + financed * (sim['insurance_commission'] / 100)
-               )
-            operating  = patients * sim['operating_cost']
-            compliance = sim['compliance_cost']                  # annual
-            funding    = patients * sim['procedure_cost'] * (sim['funding_cost'] / 100)
+            # update the patient and cost inputs for this year
+            sim['monthly_patients'] = patients
+            # (optionally) inflate costs each year, e.g.:
+            # sim['procedure_cost']  *= (1 + sim['inflation_rate']/100)
+            # sim['operating_cost']  *= (1 + sim['inflation_rate']/100)
+            # sim['compliance_cost'] *= (1 + sim['inflation_rate']/100)
 
-            total_rev   += revenue
-            total_costs += (operating + compliance + funding)
+            # call core P&L logic
+            yr = calculate_metrics(sim)
+            cumulative_net += yr['Net Profit']
 
-        # net profit
-        pre_tax    = total_rev - total_costs
-        tax_amt    = pre_tax * (sim['corporate_tax'] / 100)
-        net_profit = pre_tax - tax_amt
+        results_2yr.append(cumulative_net)
+        
 
-        results_2yr.append(net_profit)
+        
 
     st.session_state.monte_2yr_df = pd.DataFrame(results_2yr, columns=["Net Profit"])
 
