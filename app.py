@@ -236,7 +236,8 @@ st.session_state.current_inputs.update({
 # whenever inputs change, remove cached Monte Carlo so it re-runs
 if 'monte_df' in st.session_state:
     del st.session_state['monte_df']
-
+if 'monte_2yr_df' in st.session_state:
+    del st.session_state['monte_2yr_df']
 current_inputs = st.session_state.current_inputs
 # Calculate results
 results = calculate_metrics(current_inputs)
