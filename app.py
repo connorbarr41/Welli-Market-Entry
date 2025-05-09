@@ -423,11 +423,11 @@ if 'monte_2yr_df' not in st.session_state or redo_monte_2yr:
 
             # annual revenue & costs
             financed = patients * sim['procedure_cost'] * (sim['financing_rate'] / 100)
-             revenue  = (
-             financed * (sim['interest_rate']   / 100)
-             + financed * (sim['medical_discount']/ 100)
-             + financed * (sim['insurance_commission'] / 100)
-                )
+            revenue  = (
+            financed * (sim['interest_rate']   / 100)
+            + financed * (sim['medical_discount']/ 100)
+            + financed * (sim['insurance_commission'] / 100)
+               )
             operating  = patients * sim['operating_cost']
             compliance = sim['compliance_cost']                  # annual
             funding    = patients * sim['procedure_cost'] * (sim['funding_cost'] / 100)
