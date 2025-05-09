@@ -411,8 +411,8 @@ if 'monte_2yr_df' not in st.session_state or redo_monte_2yr:
             sim['corporate_tax'] * 1.1
         )
         # Build a 2-Year forecast using calculate_metrics
-       cumulative_net = 0.0
-       patients = sim['monthly_patients']
+        cumulative_net = 0.0
+        patients = sim['monthly_patients']
 
         for year in (1, 2):
             # apply early growth rate
