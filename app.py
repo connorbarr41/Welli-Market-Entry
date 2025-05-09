@@ -124,8 +124,8 @@ if 'current_inputs' not in st.session_state:
         'patient_growth_late': 50,
     }
 # enforce 100% financing everywhere
-    current_inputs = st.session_state.current_inputs
-    results = calculate_metrics(current_inputs)
+current_inputs = st.session_state.current_inputs
+results = calculate_metrics(current_inputs)
    
     st.session_state.current_inputs['financing_rate'] = 100.0
 
@@ -413,6 +413,7 @@ if 'monte_2yr_df' not in st.session_state or redo_monte_2yr:
         # Build a 2-Year forecast using calculate_metrics
         cumulative_net = 0.0
         patients = sim['monthly_patients']
+        financed_amount = patients * sim['procedure_cost'] * (sim['financing_rate'] / 100)
 
         for year in (1, 2):
             # apply early growth rate
