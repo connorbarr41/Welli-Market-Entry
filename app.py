@@ -233,6 +233,10 @@ st.session_state.current_inputs.update({
     'patient_growth_early': patient_growth_early,
     'patient_growth_late': patient_growth_late
 })
+# whenever inputs change, remove cached Monte Carlo so it re-runs
+if 'monte_df' in st.session_state:
+    del st.session_state['monte_df']
+
 current_inputs = st.session_state.current_inputs
 # Calculate results
 results = calculate_metrics(current_inputs)
