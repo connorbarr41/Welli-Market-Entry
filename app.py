@@ -121,7 +121,7 @@ if 'current_inputs' not in st.session_state:
         'corporate_tax': 29.5,
         'inflation_rate': 4.0,
         'patient_growth_early': 120.0,
-        'patient_growth_late': 50
+        'patient_growth_late': 50,
     }
 # enforce 100% financing everywhere
     current_inputs = st.session_state.current_inputs
