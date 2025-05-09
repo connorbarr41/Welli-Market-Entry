@@ -346,15 +346,13 @@ with col3:
         step=0.01,
         key="sens_patient_mult"
     )
-
-
-# Apply sensitivity inputs
+# Apply sensitivity inputs (now only scaling patient count)
 sensitivity_inputs = current_inputs.copy()
-sensitivity_inputs['interest_rate'] = sens_interest
-sensitivity_inputs['bad_debt'] = sens_bad_debt
-sensitivity_inputs["monthly_patients"] *= sens_patient_mult
-for key in ['procedure_cost']:
-    sensitivity_inputs[key] *= sens_revenue_mult
+sensitivity_inputs['interest_rate']    = sens_interest
+sensitivity_inputs['bad_debt']         = sens_bad_debt
+sensitivity_inputs['monthly_patients'] *= sens_patient_mult
+
+
 
 sensitivity_results = calculate_metrics(sensitivity_inputs)
 
