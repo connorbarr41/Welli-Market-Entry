@@ -204,7 +204,7 @@ with col2:
     patient_growth_early = st.number_input(
           "Annual Growth Rate (Years 1–2 %)",
           value=float(st.session_state.current_inputs.get("patient_growth_early", 10.0)),
-          min_value=0.0, max_value=200.0,
+          min_value=0.0, max_value=1000.0,
           step=0.1,
           key="patient_growth_early"
       )
@@ -212,7 +212,7 @@ with col2:
     patient_growth_late = st.number_input(
         "Annual Growth Rate (Years 3–5 %)",
         value=float(st.session_state.current_inputs.get("patient_growth_late", 5.0)),
-        min_value=0.0, max_value=100.0,
+        min_value=0.0, max_value=1000.0,
         step=0.1,
         key="patient_growth_late"
     )
