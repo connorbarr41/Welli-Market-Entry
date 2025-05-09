@@ -113,7 +113,7 @@ if 'current_inputs' not in st.session_state:
         'financing_rate': 100.0,
         'interest_rate': 28.0,
         'medical_discount': 5.0,
-        'insurance_commission': 0.3,
+        'insurance_commission': 0.0,
         'funding_cost': 21.0,
         'operating_cost': 11.0,
         'bad_debt': 8.0,
