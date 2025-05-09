@@ -201,23 +201,21 @@ with col2:
     inflation_rate = st.number_input('Inflation Rate (%)',
                                    value=float(st.session_state.current_inputs['inflation_rate']),
                                    min_value=0.0, max_value=10.0)
-     # let the user enter a percent, then convert once
-    growth_rate_early_pct = st.number_input(
-        "Annual Growth Rate (Years 1–2 %)",
-        value=float(st.session_state.current_inputs.get("patient_growth_early", 10.0)),
-        min_value=0.0, max_value=200.0,
-        step=0.1,
-        key="patient_growth_early_pct"
-    )
-    patient_growth_early = growth_rate_early_pct / 100
-    growth_rate_late_pct = st.number_input(
+    patient_growth_early = st.number_input(
+          "Annual Growth Rate (Years 1–2 %)",
+          value=float(st.session_state.current_inputs.get("patient_growth_early", 10.0)),
+          min_value=0.0, max_value=200.0,
+          step=0.1,
+          key="patient_growth_early"
+      )
+
+    patient_growth_late = st.number_input(
         "Annual Growth Rate (Years 3–5 %)",
         value=float(st.session_state.current_inputs.get("patient_growth_late", 5.0)),
         min_value=0.0, max_value=100.0,
         step=0.1,
-        key="patient_growth_late_pct"
+        key="patient_growth_late"
     )
-    patient_growth_late = growth_rate_late_pct / 100   
 # Update session state
 st.session_state.current_inputs.update({
     'country': country,
@@ -270,10 +268,10 @@ forecast_data = []
 for year in range(forecast_years):
     year_inputs = current_inputs.copy()
 # use early growth for years 1–2, late growth for years 3–5
-    rate = (
-       current_inputs['patient_growth_early']
-               if year < 2 else current_inputs['patient_growth_late']
-    )
+rate = (
+    current_inputs['patient_growth_early'] / 100
+        if year < 2 else current_inputs['patient_growth_late'] / 100
+)
     year_inputs['monthly_patients'] *= (1 + rate) ** year
     
     year_inputs['procedure_cost'] *= (1 + inflation_rate/100) ** year
@@ -414,7 +412,7 @@ if 'monte_2yr_df' not in st.session_state or redo_monte_2yr:
 
         for year in (1, 2):
             # always use early-period growth
-            rate     = sim['patient_growth_early']
+            rate     = sim['patient_growth_early'] / 100
             patients *= (1 + rate)
 
             # annual revenue & costs
@@ -508,9 +506,9 @@ if 'monte_df' not in st.session_state or redo_monte:
         for year in range(1, 6):  # years 1 to 5
             # pick growth rate for this year
             rate = (
-                sim['patient_growth_early']
+                sim['patient_growth_early'] / 100
                 if year <= 2
-                else sim['patient_growth_late']
+                else sim['patient_growth_late'] / 100
             )
             patients *= (1 + rate)
 
