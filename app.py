@@ -268,7 +268,7 @@ forecast_data = []
 for year in range(forecast_years):
     year_inputs = current_inputs.copy()
 # use early growth for years 1–2, late growth for years 3–5
-rate = (
+    rate = (
     current_inputs['patient_growth_early'] / 100
         if year < 2 else current_inputs['patient_growth_late'] / 100)
     year_inputs['monthly_patients'] *= (1 + rate) ** year
