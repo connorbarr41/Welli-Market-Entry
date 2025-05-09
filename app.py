@@ -338,17 +338,21 @@ with col2:
 
 
 with col3:
-     sens_revenue_mult = st.slider(
-     "Sensitivity—Revenue Multiplier",    # new label
-     0.8, 1.2, 1.0, 0.01,
-     key="sens_revenue_mult"              # explicit key          
-)
+     sens_patient_mult = st.slider(
+     "Sensitivity—Patient Count Multiplier",
+        min_value=0.8,
+        max_value=1.2,
+        value=1.0,
+        step=0.01,
+        key="sens_patient_mult"
+    )
 
 
 # Apply sensitivity inputs
 sensitivity_inputs = current_inputs.copy()
 sensitivity_inputs['interest_rate'] = sens_interest
 sensitivity_inputs['bad_debt'] = sens_bad_debt
+sensitivity_inputs["monthly_patients"] *= sens_patient_mult
 for key in ['procedure_cost']:
     sensitivity_inputs[key] *= sens_revenue_mult
 
