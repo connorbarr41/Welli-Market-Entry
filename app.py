@@ -202,22 +202,22 @@ with col2:
                                    value=float(st.session_state.current_inputs['inflation_rate']),
                                    min_value=0.0, max_value=10.0)
      # let the user enter a percent, then convert once
- growth_rate_early_pct = st.number_input(
-     "Annual Growth Rate (Years 1–2 %)",
-     value=float(st.session_state.current_inputs.get("patient_growth_early", 10.0)),
-     min_value=0.0, max_value=200.0,
-     step=0.1,
-     key="patient_growth_early_pct"
- )
- patient_growth_early = growth_rate_early_pct / 100
- growth_rate_late_pct = st.number_input(
-     "Annual Growth Rate (Years 3–5 %)",
-     value=float(st.session_state.current_inputs.get("patient_growth_late", 5.0)),
-     min_value=0.0, max_value=100.0,
-     step=0.1,
-     key="patient_growth_late_pct"
- )
- patient_growth_late = growth_rate_late_pct / 100   
+    growth_rate_early_pct = st.number_input(
+        "Annual Growth Rate (Years 1–2 %)",
+        value=float(st.session_state.current_inputs.get("patient_growth_early", 10.0)),
+        min_value=0.0, max_value=200.0,
+        step=0.1,
+        key="patient_growth_early_pct"
+    )
+    patient_growth_early = growth_rate_early_pct / 100
+    growth_rate_late_pct = st.number_input(
+        "Annual Growth Rate (Years 3–5 %)",
+        value=float(st.session_state.current_inputs.get("patient_growth_late", 5.0)),
+        min_value=0.0, max_value=100.0,
+        step=0.1,
+        key="patient_growth_late_pct"
+    )
+    patient_growth_late = growth_rate_late_pct / 100   
 # Update session state
 st.session_state.current_inputs.update({
     'country': country,
