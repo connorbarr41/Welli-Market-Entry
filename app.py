@@ -350,7 +350,7 @@ with col3:
 sensitivity_inputs = current_inputs.copy()
 sensitivity_inputs['interest_rate']    = sens_interest
 sensitivity_inputs['bad_debt']         = sens_bad_debt
-sensitivity_inputs['monthly_patients'] *= sens_patient_count
+sensitivity_inputs['monthly_patients'] = sens_patient_count
 
 
 
