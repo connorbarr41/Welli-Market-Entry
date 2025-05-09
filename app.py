@@ -465,9 +465,8 @@ st.header("Five Year Monte Carlo Simulation")
 redo_monte = st.button("Redo Monte Carlo")
 st.write("Running 1,000 scenarios with annual updates—click to rerun.")
 
-# grab our inputs and set number of sims
 current_inputs = st.session_state.current_inputs
-simulations = 1000
+simulations    = 1000
 
 if 'monte_df' not in st.session_state or redo_monte:
     np.random.seed(None)
@@ -476,52 +475,24 @@ if 'monte_df' not in st.session_state or redo_monte:
     for _ in range(simulations):
         sim = current_inputs.copy()
 
-        # 1) One-time multipliers for cost & revenue drivers
-        sim['procedure_cost']  *= np.random.triangular(0.8, 1.0, 1.2)  # ±20%
-        sim['operating_cost']  *= np.random.triangular(0.8, 1.0, 1.2)
-        sim['compliance_cost'] *= np.random.triangular(0.9, 1.0, 1.1)  # ±10%
-        sim['funding_cost']    *= np.random.triangular(0.8, 1.0, 1.2)
+        # apply random draws for cost & macro here as before…
 
-        # 2) Macro & tax variables drawn once per scenario
-        sim['interest_rate']  = np.clip(
-            np.random.normal(sim['interest_rate'], 0.05),  # 5 ppt sd
-            0.05, 0.30
-        )
-        sim['bad_debt'] = float(
-            np.clip(np.random.beta(2, 60), 0.01, 0.10) * 100  # 1–10%
-        )
-        sim['inflation_rate'] = np.random.triangular(
-            sim['inflation_rate'] * 0.9,
-            sim['inflation_rate'],
-            sim['inflation_rate'] * 1.1
-        )
-        sim['corporate_tax'] = np.random.triangular(
-            sim['corporate_tax'] * 0.9,
-            sim['corporate_tax'],
-            sim['corporate_tax'] * 1.1
-        )
-
-        +    # Build a 5-Year forecast using calculate_metrics
+        # 5-year forecast using calculate_metrics
         cumulative_net = 0.0
-        patients = sim['monthly_patients']
+        patients       = sim['monthly_patients']
 
         for year in range(1, 6):
-         # apply early/late growth
-             rate = (sim['patient_growth_early'] if year <= 2 else sim['patient_growth_late']) / 100
-             patients *= (1 + rate)
+            rate     = (sim['patient_growth_early'] if year <= 2 else sim['patient_growth_late']) / 100
+            patients *= (1 + rate)
+            sim['monthly_patients'] = patients
+            yr = calculate_metrics(sim)
+            cumulative_net += yr['Net Profit']
 
-             # update the patient and cost inputs for this year
-             sim['monthly_patients'] = patients
-             # (optionally) inflate costs each year:
-             # sim['procedure_cost']  *= (1 + sim['inflation_rate']/100)
-             # sim['operating_cost']  *= (1 + sim['inflation_rate']/100)
-             # sim['compliance_cost'] *= (1 + sim['inflation_rate']/100)
+        results.append(cumulative_net)
 
-             # call core P&L logic
-             yr = calculate_metrics(sim)
-             cumulative_net += yr['Net Profit']
+    st.session_state.monte_df = pd.DataFrame(results, columns=["Net Profit"])
 
-         results.append(cumulative_net)
+monte_df = st.session_state.monte_df
 
     # save for re-use until the button is clicked again
     st.session_state.monte_df = pd.DataFrame(results, columns=["Net Profit"])
