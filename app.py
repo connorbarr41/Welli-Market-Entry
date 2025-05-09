@@ -270,8 +270,7 @@ for year in range(forecast_years):
 # use early growth for years 1–2, late growth for years 3–5
 rate = (
     current_inputs['patient_growth_early'] / 100
-        if year < 2 else current_inputs['patient_growth_late'] / 100
-)
+        if year < 2 else current_inputs['patient_growth_late'] / 100)
     year_inputs['monthly_patients'] *= (1 + rate) ** year
     
     year_inputs['procedure_cost'] *= (1 + inflation_rate/100) ** year
