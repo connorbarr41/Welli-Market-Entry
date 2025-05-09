@@ -501,40 +501,27 @@ if 'monte_df' not in st.session_state or redo_monte:
             sim['corporate_tax'] * 1.1
         )
 
-        # 3) Year-by-year patient & financial projection
+        +    # Build a 5-Year forecast using calculate_metrics
+        cumulative_net = 0.0
         patients = sim['monthly_patients']
-        total_revenue = 0.0
-        total_costs   = 0.0
 
-        for year in range(1, 6):  # years 1 to 5
-            # pick growth rate for this year
-            rate = (
-                sim['patient_growth_early'] / 100
-                if year <= 2
-                else sim['patient_growth_late'] / 100
-            )
-            patients *= (1 + rate)
+        for year in range(1, 6):
+         # apply early/late growth
+             rate = (sim['patient_growth_early'] if year <= 2 else sim['patient_growth_late']) / 100
+             patients *= (1 + rate)
 
-            # compute annual revenue & costs
-            financed = patients * sim['procedure_cost'] * (sim['financing_rate'] / 100)
-            revenue  = (
-            financed * (sim['interest_rate']   / 100)
-            + financed * (sim['medical_discount']/ 100)
-            + financed * (sim['insurance_commission'] / 100)
-                )
-            operating = patients * sim['operating_cost']
-            compliance= sim['compliance_cost']             # annual
-            funding   = patients * sim['procedure_cost'] * (sim['funding_cost'] / 100)
+             # update the patient and cost inputs for this year
+             sim['monthly_patients'] = patients
+             # (optionally) inflate costs each year:
+             # sim['procedure_cost']  *= (1 + sim['inflation_rate']/100)
+             # sim['operating_cost']  *= (1 + sim['inflation_rate']/100)
+             # sim['compliance_cost'] *= (1 + sim['inflation_rate']/100)
 
-            total_revenue += revenue
-            total_costs   += (operating + compliance + funding)
+             # call core P&L logic
+             yr = calculate_metrics(sim)
+             cumulative_net += yr['Net Profit']
 
-        # 4) Profit calculation
-        pre_tax    = total_revenue - total_costs
-        tax_amt    = pre_tax * (sim['corporate_tax'] / 100)
-        net_profit = pre_tax - tax_amt
-
-        results.append(net_profit)
+         results.append(cumulative_net)
 
     # save for re-use until the button is clicked again
     st.session_state.monte_df = pd.DataFrame(results, columns=["Net Profit"])
